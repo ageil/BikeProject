@@ -1,4 +1,6 @@
-# Bike project
+####################
+### Bike project ###
+####################
 
 library(shiny)
 library(shinydashboard)
@@ -16,7 +18,6 @@ data <- gs_read(bike, range="A1:S79") # load data form googlesheet
 data$time <- hms(data$time)
 data$date <- mdy(data$date)
 geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng
-
 
 
 shinyApp(
@@ -57,7 +58,6 @@ shinyApp(
             )
         ),
 
-    
     
     
     server <- function(input, output) {
