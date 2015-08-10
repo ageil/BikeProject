@@ -56,13 +56,30 @@ shinyApp(
     server <- function(input, output) {
         
         map <- leaflet() %>% 
-            addTiles() %>% 
+            addProviderTiles("Thunderforest.Outdoors",
+                             options=providerTileOptions(noWrap=TRUE)
+                             ) %>%
             addCircleMarkers(lng = geodata$longitude, lat = geodata$latitude, 
                              radius=1)
         
-        output$myMap = renderLeaflet(map)
+        output$myMap <- renderLeaflet(map)
+        
+        output$dayplot <- renderPlot({
+            ggplot(geodata, aes(x=day, y=input$yvar)) +
+                geom_point() +
+                geom_smooth()
+        })
     }
 )
+
+
+ggplot(geodata, aes(x=day, y=alt_down)) +
+    geom_point() +
+    geom_smooth()
+
+input$yvar
+
+
 
 
 
