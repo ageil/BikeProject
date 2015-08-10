@@ -57,30 +57,30 @@ shinyApp(
         
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
-                             options=providerTileOptions(noWrap=TRUE)
-                             ) %>%
+                             options=providerTileOptions(noWrap=TRUE)) %>%
             addCircleMarkers(lng = geodata$longitude, lat = geodata$latitude, 
                              radius=1)
         
         output$myMap <- renderLeaflet(map)
-        
-        output$dayplot <- renderPlot({
-            ggplot(geodata, aes(x=day, y=input$yvar)) +
-                geom_point() +
-                geom_smooth()
-        })
     }
 )
 
+selectInput(inputId="yvar", 
+            label = "Choose a variable to plot",
+            choices=c("Distance (km)" = "distance",
+                      "Average speed (km/h)" = "avg_speed",
+                      "Top speed (km/h)" = "top_speed",
+                      "Altitude up (m)" = "alt_up",
+                      "Altitude down (m)" = "alt_down",
+                      "Average climb (%)" = "avg_climb",
+                      "Average descent (%)" = "avg_descent",
+                      "Max climb (%)" = "max_climb"
+                      )
+            )
+plotOutput(outputId = "dayplot")
 
-ggplot(geodata, aes(x=day, y=alt_down)) +
-    geom_point() +
-    geom_smooth()
-
-input$yvar
-
-
-
-
-
-
+output$dayplot <- renderPlot({
+    ggplot(data, aes(x=day, y=distance)) +
+        geom_point() +
+        geom_smooth()
+})
