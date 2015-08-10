@@ -11,13 +11,13 @@ library(lubridate)
 
 # Load data from Google
 bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register googlesheet
-data <- gs_read(bike, range="A1:S79") # load data form googlesheet
+data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
 
 
 # format:
 data$time <- hms(data$time)
 data$date <- mdy(data$date)
-geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng
+geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA)
 
 
 shinyApp(
@@ -26,17 +26,18 @@ shinyApp(
                         titleWidth=240),
         dashboardSidebar(
             sidebarMenu(
-                menuItem("Dashboard", tabName="dashboard", icon=icon("dashboard")),
-                menuItem("Widgets", tabName="widgets", icon=icon("th"))
+                menuItem("Map", tabName="map", icon=icon("globe")),
+                menuItem("Statistics", tabName="statistics", icon=icon("area-chart")),
+                menuItem("About", tabName="about", icon=icon("info"))
             )
         ),
         dashboardBody(
             tabItems(
-                tabItem(tabName="dashboard",
+                tabItem(tabName="map",
                         fluidRow(leafletOutput("myMap"))
                         ),
-                tabItem(tabName="widgets",
-                        tags$h2("Widgets tab content"),
+                tabItem(tabName="statistics",
+                        tags$h2("Statistics"),
                         selectInput(inputId="yvar", 
                                     label = "Choose a variable to plot",
                                     choices=c("Distance" = "Distance (km)",
@@ -53,6 +54,19 @@ shinyApp(
                                               "Total altitude down" = "Total altitude down (m)")
                                     ),
                         plotOutput(outputId = "dayplot")
+                        ),
+                tabItem(tabName="about",
+                        fluidRow(
+                            box(title="About", 
+                                "In the summer of 2014, I bought a bicycle and a 
+                                flight ticket to Miami. Almost 7000 km later, I 
+                                rode across the Golden Gate Bridge and down the 
+                                steep hills of Lombard Street. Every night along 
+                                the way, when setting up camp, I would note down 
+                                the numbers collected on my bike computer during 
+                                the day. This is an experimental attempt at 
+                                visualizing some of those numbers.")
+                        )
                         )
                 )
             )
@@ -70,7 +84,7 @@ shinyApp(
         
         output$myMap <- renderLeaflet(map)
         
-        output$dayplot <- reactivePlot(function() {
+        output$dayplot <- renderPlot({
             if (input$yvar == "Distance (km)") {
                 plotdata <- data.frame(day = data$day, var = data$distance)
             } else if (input$yvar == "Average speed (km/h)") {
@@ -99,7 +113,7 @@ shinyApp(
             
             p <- ggplot(plotdata, aes(day, var)) +
                 geom_point() +
-                geom_smooth() +
+                geom_line() +
                 xlab("Day") +
                 ylab(input$yvar)
             print(p)
