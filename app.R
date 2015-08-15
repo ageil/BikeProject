@@ -7,6 +7,7 @@ library(shinydashboard)
 library(googlesheets)
 library(leaflet)
 library(ggplot2)
+library(scales)
 library(lubridate)
 
 # Load data from Google
@@ -98,11 +99,11 @@ shinyApp(
             } else if (input$yvar == "Average climb (%)") {
                 plotdata <- data.frame(day = data$day, var = data$avg_climb, State=data$state)
             } else if (input$yvar == "Average descent (%)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_descent, State=data$state)
+                plotdata <- data.frame(day = data$day, var = abs(data$avg_descent), State=data$state)
             } else if (input$yvar == "Max climb (%)") {
                 plotdata <- data.frame(day = data$day, var = data$max_climb, State=data$state)
             } else if (input$yvar == "Max descent (%)") {
-                plotdata <- data.frame(day = data$day, var = data$max_descent, State=data$state)
+                plotdata <- data.frame(day = data$day, var = abs(data$max_descent), State=data$state)
             } else if (input$yvar == "Total distance (km)") {
                 plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$distance), 0, data$distance)), State=data$state)
             } else if (input$yvar == "Total altitude up (m)") {
@@ -116,6 +117,7 @@ shinyApp(
                 xlab("Day") +
                 ylab(input$yvar) +
                 scale_x_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80)) +
+                scale_y_continuous(breaks=pretty_breaks(10)) +
                 scale_fill_brewer(palette="Paired", type="qual") +
                 scale_color_brewer(palette="Paired", type="qual")
                 # scale_fill_brewer(type="qual")
