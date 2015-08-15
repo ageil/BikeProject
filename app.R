@@ -28,17 +28,52 @@ shinyApp(
         dashboardSidebar(
             sidebarMenu(
                 menuItem("Map", tabName="map", icon=icon("globe")),
-                menuItem("Statistics", tabName="statistics", icon=icon("area-chart")),
+                menuItem("Charts", tabName="charts", icon=icon("area-chart")),
                 menuItem("About", tabName="about", icon=icon("info"))
             )
         ),
         dashboardBody(
             tabItems(
                 tabItem(tabName="map",
-                        fluidRow(leafletOutput("myMap"))
+                        fluidRow(box(width=12, 
+                                     leafletOutput("myMap", 
+                                                   width="100%", 
+                                                   height="500")
+                                     )
+                                 ),
+                        fluidRow(box(width=6, 
+                                     title="Visualizing a long bicycle ride", 
+                                     "In the summer of 2014, I bought a bicycle 
+                                     and a flight ticket to Miami. Almost 7000 km 
+                                     later, I rode across the Golden Gate Bridge 
+                                     and over the steep hills of Lombard Street, 
+                                     San Francisco.", 
+                                     br(), br(), 
+                                     "Every night along the way, when setting up 
+                                     camp, I would note down the numbers collected 
+                                     on my bike computer during that day.", 
+                                     br(), br(), 
+                                     "This is an initial, and very experimental 
+                                     attempt at visualizing some of those numbers."),
+                               box(width=6,
+                                   title="Navigating this website",
+                                    "The map above shows a dot at every place
+                                    I've been camping at along the way.",
+                                    br(), br(), 
+                                    "If you want to further explore 
+                                    some of the data connecting these points, the 
+                                    'Charts'-tab on the sidebar to the left will 
+                                    allow you to do so. Finally, if you're more 
+                                    curious about this website or who I am, check 
+                                    out the 'About'-tab.",
+                                    br(), br(),
+                                    "Keep in mind, you can always close the sidebar to 
+                                    enlarge the graphics by clicking the little 
+                                    'menu'-button in the bar at the top.")
+                               )
                         ),
-                tabItem(tabName="statistics",
-                        tags$h2("Statistics"),
+                tabItem(tabName="charts",
+                        tags$h2("Charts"),
                         selectInput(inputId="yvar", 
                                     label = "Choose a variable to plot",
                                     choices=c("Total distance" = "Total distance (km)",
@@ -58,24 +93,57 @@ shinyApp(
                         ),
                 tabItem(tabName="about",
                         fluidRow(
-                            box(title="About", 
-                                "In the summer of 2014, I bought a bicycle and a 
-                                flight ticket to Miami. Almost 7000 km later, I 
-                                rode across the Golden Gate Bridge and down the 
-                                steep hills of Lombard Street. Every night along 
-                                the way, when setting up camp, I would note down 
-                                the numbers collected on my bike computer during 
-                                the day. This is an experimental attempt at 
-                                visualizing some of those numbers.")
+                            box(width=6, 
+                                title="Who am I?", 
+                                "My name is Anders, and when I'm not riding a bicycle
+                                around the world, I'm a political science student
+                                at Aarhus University, Denmark.",
+                                br(), br(),
+                                "Lately, I've been very engaged in the world of 
+                                data science and learning R. In fact, this website
+                                is part of my course project for the 
+                                'Data Products'-class in the Data Science
+                                Specialization offered by Johns Hopkins University 
+                                at Coursera.",
+                                br(), br(),
+                                "My plan is to gradually expand on this basic website
+                                framework, so it may be used as a statistical platform 
+                                for future bicycle trips."
+                                ),
+                            box(width=6,
+                                title="How does it work?",
+                                "This entire website was built in the statistical
+                                programming software R using Shiny. The data is
+                                automatically collected from a Google spreadsheet,
+                                and updated whenever new data is available.",
+                                br(), br(),
+                                "My intention is to build upon this framework,
+                                so that I - during future trips - can just type
+                                the daily data into a spreadsheet on my iPad, 
+                                and have it automatically update the website 
+                                with the more current information, whenever 
+                                the iPad next gets access to the internet.",
+                                br(), br(),
+                                "Perhaps in the more distant future, I'll 
+                                invest in a GPS that can track my actual route,
+                                rather than just my manually estimated campsites
+                                to further ease the burden on me and increase the
+                                precision of my data.")
+                            )
                         )
-                        )
+                    )
                 )
-            )
         ),
 
     
     
     server <- function(input, output) {
+        
+#         output$cal <- renderMenu({
+#             sidebarMenu(
+#                 menuItem("Cal item", icon=icon("calendar"))
+#             )
+#         })
         
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
@@ -120,7 +188,6 @@ shinyApp(
                 scale_y_continuous(breaks=pretty_breaks(10)) +
                 scale_fill_brewer(palette="Paired", type="qual") +
                 scale_color_brewer(palette="Paired", type="qual")
-                # scale_fill_brewer(type="qual")
             print(p)
         })
     }
