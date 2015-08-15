@@ -208,13 +208,21 @@ myapp <- shinyApp(
         
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
-                             options=providerTileOptions(noWrap=TRUE))
-#         %>%
-#             addCircleMarkers(lng = mygeodata()$longitude, 
-#                              lat = mygeodata()$latitude, 
-#                              radius=2, 
-#                              color="red", 
-#                              popup= mygeodata()$popup)
+                             options=providerTileOptions(noWrap=TRUE)) %>% 
+            setView(lng = "-98",
+                    lat = "36",
+                    zoom = 4)
+
+        observe({
+            leafletProxy("myMap") %>% 
+                clearMarkers() %>% 
+                addCircleMarkers(lng = mygeodata()$longitude,
+                                 lat = mygeodata()$latitude,
+                                 radius=2,
+                                 color="red",
+                                 opacity=1,
+                                 popup = mygeodata()$popup)
+        })
         
         output$myMap <- renderLeaflet(map)
         
