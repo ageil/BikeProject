@@ -14,10 +14,10 @@ bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register google
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
 
 
-# format:
-data$time <- hms(data$time)
+# Format
+data$time <- hms(data$time) # cannot ggplot type "period"?
 data$date <- mdy(data$date)
-geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA)
+geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
 
 
 shinyApp(
@@ -40,7 +40,10 @@ shinyApp(
                         tags$h2("Statistics"),
                         selectInput(inputId="yvar", 
                                     label = "Choose a variable to plot",
-                                    choices=c("Distance" = "Distance (km)",
+                                    choices=c("Total distance" = "Total distance (km)",
+                                              "Total altitude up" = "Total altitude up (m)",
+                                              "Total altitude down" = "Total altitude down (m)",
+                                              "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
                                               "Altitude up" = "Altitude up (m)",
@@ -48,10 +51,7 @@ shinyApp(
                                               "Average climb" = "Average climb (%)",
                                               "Average descent" = "Average descent (%)",
                                               "Max climb" = "Max climb (%)",
-                                              "Max descent" = "Max descent (%)",
-                                              "Total distance" = "Total distance (km)",
-                                              "Total altitude up" = "Total altitude up (m)",
-                                              "Total altitude down" = "Total altitude down (m)")
+                                              "Max descent" = "Max descent (%)")
                                     ),
                         plotOutput(outputId = "dayplot")
                         ),
@@ -86,36 +86,39 @@ shinyApp(
         
         output$dayplot <- renderPlot({
             if (input$yvar == "Distance (km)") {
-                plotdata <- data.frame(day = data$day, var = data$distance)
+                plotdata <- data.frame(day = data$day, var = data$distance, State=data$state)
             } else if (input$yvar == "Average speed (km/h)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_speed)
+                plotdata <- data.frame(day = data$day, var = data$avg_speed, State=data$state)
             } else if (input$yvar == "Top speed (km/h)") {
-                plotdata <- data.frame(day = data$day, var = data$top_speed)
+                plotdata <- data.frame(day = data$day, var = data$top_speed, State=data$state)
             } else if (input$yvar == "Altitude up (m)") {
-                plotdata <- data.frame(day = data$day, var = data$alt_up)
+                plotdata <- data.frame(day = data$day, var = data$alt_up, State=data$state)
             } else if (input$yvar == "Altitude down (m)") {
-                plotdata <- data.frame(day = data$day, var = data$alt_down)
+                plotdata <- data.frame(day = data$day, var = data$alt_down, State=data$state)
             } else if (input$yvar == "Average climb (%)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_climb)
+                plotdata <- data.frame(day = data$day, var = data$avg_climb, State=data$state)
             } else if (input$yvar == "Average descent (%)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_descent)
+                plotdata <- data.frame(day = data$day, var = data$avg_descent, State=data$state)
             } else if (input$yvar == "Max climb (%)") {
-                plotdata <- data.frame(day = data$day, var = data$max_climb)
+                plotdata <- data.frame(day = data$day, var = data$max_climb, State=data$state)
             } else if (input$yvar == "Max descent (%)") {
-                plotdata <- data.frame(day = data$day, var = data$max_descent)
+                plotdata <- data.frame(day = data$day, var = data$max_descent, State=data$state)
             } else if (input$yvar == "Total distance (km)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$distance), 0, data$distance)))
+                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$distance), 0, data$distance)), State=data$state)
             } else if (input$yvar == "Total altitude up (m)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_up), 0, data$alt_up)))
+                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_up), 0, data$alt_up)), State=data$state)
             } else if (input$yvar == "Total altitude down (m)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_down), 0, data$alt_down)))
+                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_down), 0, data$alt_down)), State=data$state)
             }
             
-            p <- ggplot(plotdata, aes(day, var)) +
-                geom_point() +
-                geom_line() +
+            p <- ggplot(plotdata, aes(day, var, fill=State, color=State)) +
+                geom_bar(stat="identity") +
                 xlab("Day") +
-                ylab(input$yvar)
+                ylab(input$yvar) +
+                scale_x_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80)) +
+                scale_fill_brewer(palette="Paired", type="qual") +
+                scale_color_brewer(palette="Paired", type="qual")
+                # scale_fill_brewer(type="qual")
             print(p)
         })
     }
