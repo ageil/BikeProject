@@ -5,41 +5,41 @@
 library(shiny)
 library(shinydashboard)
 library(googlesheets)
+library(dplyr)
 library(leaflet)
 library(ggplot2)
 library(scales)
-library(lubridate)
 
 
 # Load data from Google
 bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register googlesheet
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
 
-
 # Format
-data$time <- hms(data$time) # cannot ggplot type "period"?
-data$date <- mdy(data$date)
-geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
-geodata$popup <- ifelse(is.na(geodata$description)==TRUE, 
-                        yes=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
-                                   geodata$place, ", ", geodata$state), 
-                        no=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
-                                  geodata$place, ", ", geodata$state, "<br>",
-                                  geodata$description))
+#data$time <- strptime(data$time, format="%H:%M:%S")
+data$date <- as.Date(data$date, format="%m/%d/%Y")
+# geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
+# geodata$popup <- ifelse(is.na(geodata$description)==TRUE, 
+#                         yes=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+#                                    geodata$place, ", ", geodata$state), 
+#                         no=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+#                                   geodata$place, ", ", geodata$state, "<br>",
+#                                   geodata$description))
 
-shinyApp(
+myapp <- shinyApp(
     ui <- dashboardPage(
         dashboardHeader(title="Cycling across America",
                         titleWidth=240),
         dashboardSidebar(
             sidebarMenu(
                 dateRangeInput("cal",
-                               label = "Choose an interval of dates",
-                               start = head(geodata$date, 1),
-                               end = tail(geodata$date, 1),
-                               min = head(geodata$date, 1),
-                               max = tail(geodata$date, 1),
-                               format = "dd/mm/yy"),
+                               label = "Select an interval of dates",
+                               start = head(data$date, 1),
+                               end = tail(data$date, 1),
+                               min = head(data$date, 1),
+                               max = tail(data$date, 1),
+                               format = "dd/mm/yy",
+                               weekstart = 1),
                 menuItem("Map", tabName="map", icon=icon("globe")),
                 menuItem("Charts", tabName="charts", icon=icon("area-chart")),
                 menuItem("About", tabName="about", icon=icon("info"))
@@ -48,53 +48,55 @@ shinyApp(
         dashboardBody(
             tabItems(
                 tabItem(tabName="map",
-                        fluidRow(box(width=12, 
-                                     leafletOutput("myMap", 
-                                                   width="100%", 
-                                                   height="500")
-                                     )
-                                 ),
-                        fluidRow(box(width=6, 
-                                     title="Visualizing a long bicycle ride", 
-                                     "In the summer of 2014, I bought a bicycle 
-                                     and a flight ticket to Miami. Almost 7000 km 
-                                     later, I rode across the Golden Gate Bridge 
-                                     and over the steep hills of Lombard Street, 
-                                     San Francisco.", 
-                                     br(), br(), 
-                                     "Every night along the way, when setting up 
-                                     camp, I would mark down the numbers collected 
-                                     on my bike computer during that day and estimate
-                                     my position on the map.", 
-                                     br(), br(), 
-                                     "This is an initial, and very experimental 
-                                     attempt at visualizing some of those numbers."),
-                               box(width=6,
-                                   title="Navigating this website",
-                                   "The red dots in the map above indicate all the 
-                                   place places I've been staying for the night 
-                                   during the trip. You can click the points to see
-                                   the exact name of the place along with any brief 
-                                   notes for that day.",
-                                   br(), br(), 
-                                   "If you want to further explore some of the data 
-                                   connecting these points, the 'Charts'-tab on the 
-                                   sidebar to the left will allow you to do so. 
-                                   Finally, if you're more curious about this website 
-                                   or who I am, check out the 'About'-tab.",
-                                   br(), br(), 
-                                   "Keep in mind, you can always close the sidebar 
-                                   to enlarge the map by clicking the little 
-                                   'menu'-icon in the bar at the very top.")
-                               )
+                        fluidRow(
+                            box(width=12, 
+                                leafletOutput("myMap", 
+                                              width="100%", 
+                                              height="500")
+                            )
+                        ),
+                        fluidRow(
+                            box(width=6, 
+                                 title="Visualizing a long bicycle ride", 
+                                 "In the summer of 2014, I bought a bicycle 
+                                 and a flight ticket to Miami. Almost 7000 km 
+                                 later, I rode across the Golden Gate Bridge 
+                                 and over the steep hills of Lombard Street, 
+                                 San Francisco.", 
+                                 br(), br(), 
+                                 "Every night along the way, when setting up 
+                                 camp, I would mark down the numbers collected 
+                                 on my bike computer during that day and estimate
+                                 my position on the map.", 
+                                 br(), br(), 
+                                 "This is an initial, and very experimental 
+                                 attempt at visualizing some of those numbers."),
+                           box(width=6,
+                               title="Navigating this website",
+                               "The red dots in the map above indicate all the 
+                               place places I've been staying for the night 
+                               during the trip. You can click the points to see
+                               the exact name of the place along with any brief 
+                               notes for that day.",
+                               br(), br(), 
+                               "If you want to further explore some of the data 
+                               connecting these points, the 'Charts'-tab on the 
+                               sidebar to the left will allow you to do so. 
+                               Finally, if you're more curious about this website 
+                               or who I am, check out the 'About'-tab.",
+                               br(), br(), 
+                               "Keep in mind, you can always close the sidebar 
+                               to enlarge the map by clicking the little 
+                               'menu'-icon in the bar at the very top.")
+                           )
                         ),
                 tabItem(tabName="charts",
                         tags$h2("Charts"),
                         selectInput(inputId="yvar", 
                                     label = "Choose a variable to plot",
                                     choices=c("Total distance" = "Total distance (km)",
-                                              "Total altitude up" = "Total altitude up (m)",
-                                              "Total altitude down" = "Total altitude down (m)",
+                                              "Total altitude up" = "Total altitude up (km)",
+                                              "Total altitude down" = "Total altitude down (km)",
                                               "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
@@ -158,59 +160,70 @@ shinyApp(
     
     server <- function(input, output) {
         
-        output$calrange <- renderText({
-            paste("input$cal is", paste(as.character(input$cal), collapse=" to "))
+        mydata <- reactive({
+            caldates <- seq(input$cal[1], input$cal[2], by="day")  # user-selected dates
+            #caldates <- seq(data$date[1], data$date[70], by="day")
+            caldata <- filter(data, date %in% caldates)  # user-selected data
+        })
+            
+        myplotdata <- reactive({
+            if (input$yvar == "Distance (km)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$distance, State=mydata()$state)
+            } else if (input$yvar == "Average speed (km/h)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$avg_speed, State=mydata()$state)
+            } else if (input$yvar == "Top speed (km/h)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$top_speed, State=mydata()$state)
+            } else if (input$yvar == "Altitude up (m)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$alt_up, State=mydata()$state)
+            } else if (input$yvar == "Altitude down (m)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$alt_down, State=mydata()$state)
+            } else if (input$yvar == "Average climb (%)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$avg_climb, State=mydata()$state)
+            } else if (input$yvar == "Average descent (%)") {
+                plotdata <- data.frame(day = mydata()$day, var = abs(mydata()$avg_descent), State=mydata()$state)
+            } else if (input$yvar == "Max climb (%)") {
+                plotdata <- data.frame(day = mydata()$day, var = mydata()$max_climb, State=mydata()$state)
+            } else if (input$yvar == "Max descent (%)") {
+                plotdata <- data.frame(day = mydata()$day, var = abs(mydata()$max_descent), State=mydata()$state)
+            } else if (input$yvar == "Total distance (km)") {
+                plotdata <- data.frame(day = mydata()$day, var = cumsum(ifelse(is.na(mydata()$distance), 0, mydata()$distance)), State=mydata()$state)
+            } else if (input$yvar == "Total altitude up (km)") {
+                plotdata <- data.frame(day = mydata()$day, var = cumsum(ifelse(is.na(mydata()$alt_up), 0, mydata()$alt_up/1000)), State=mydata()$state)
+            } else if (input$yvar == "Total altitude down (km)") {
+                plotdata <- data.frame(day = mydata()$day, var = cumsum(ifelse(is.na(mydata()$alt_down), 0, mydata()$alt_down/1000)), State=mydata()$state)
+            }
         })
         
-#         output$cal <- renderMenu({
-#             sidebarMenu(
-#                 menuItem("Calendar", icon=icon("calendar"))
-#             )
-#         })
+        mygeodata <- reactive({
+            geodata <- subset(mydata(), complete.cases(mydata()[,18:19]))
+            geodata$popup <- ifelse(is.na(geodata$description)==TRUE, 
+                                    yes=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+                                               geodata$place, ", ", geodata$state), 
+                                    no=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+                                              geodata$place, ", ", geodata$state, "<br>",
+                                              geodata$description))
+            return(geodata)
+        })
+        
         
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
-                             options=providerTileOptions(noWrap=TRUE)) %>%
-            addCircleMarkers(lng = geodata$longitude, 
-                             lat = geodata$latitude, 
-                             radius=2, 
-                             color="red", 
-                             popup= geodata$popup)
+                             options=providerTileOptions(noWrap=TRUE))
+#         %>%
+#             addCircleMarkers(lng = mygeodata()$longitude, 
+#                              lat = mygeodata()$latitude, 
+#                              radius=2, 
+#                              color="red", 
+#                              popup= mygeodata()$popup)
         
         output$myMap <- renderLeaflet(map)
         
         output$dayplot <- renderPlot({
-            if (input$yvar == "Distance (km)") {
-                plotdata <- data.frame(day = data$day, var = data$distance, State=data$state)
-            } else if (input$yvar == "Average speed (km/h)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_speed, State=data$state)
-            } else if (input$yvar == "Top speed (km/h)") {
-                plotdata <- data.frame(day = data$day, var = data$top_speed, State=data$state)
-            } else if (input$yvar == "Altitude up (m)") {
-                plotdata <- data.frame(day = data$day, var = data$alt_up, State=data$state)
-            } else if (input$yvar == "Altitude down (m)") {
-                plotdata <- data.frame(day = data$day, var = data$alt_down, State=data$state)
-            } else if (input$yvar == "Average climb (%)") {
-                plotdata <- data.frame(day = data$day, var = data$avg_climb, State=data$state)
-            } else if (input$yvar == "Average descent (%)") {
-                plotdata <- data.frame(day = data$day, var = abs(data$avg_descent), State=data$state)
-            } else if (input$yvar == "Max climb (%)") {
-                plotdata <- data.frame(day = data$day, var = data$max_climb, State=data$state)
-            } else if (input$yvar == "Max descent (%)") {
-                plotdata <- data.frame(day = data$day, var = abs(data$max_descent), State=data$state)
-            } else if (input$yvar == "Total distance (km)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$distance), 0, data$distance)), State=data$state)
-            } else if (input$yvar == "Total altitude up (m)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_up), 0, data$alt_up)), State=data$state)
-            } else if (input$yvar == "Total altitude down (m)") {
-                plotdata <- data.frame(day = data$day, var = cumsum(ifelse(is.na(data$alt_down), 0, data$alt_down)), State=data$state)
-            }
-            
-            p <- ggplot(plotdata, aes(day, var, fill=State, color=State)) +
+            p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
                 geom_bar(stat="identity") +
                 xlab("Day") +
                 ylab(input$yvar) +
-                scale_x_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60, 70, 80)) +
+                scale_x_continuous(breaks=pretty_breaks(10)) +
                 scale_y_continuous(breaks=pretty_breaks(10)) +
                 scale_fill_brewer(palette="Paired", type="qual") +
                 scale_color_brewer(palette="Paired", type="qual")
@@ -220,5 +233,5 @@ shinyApp(
 )
 
 
-
+# runApp(myapp, display.mode="showcase")
 
