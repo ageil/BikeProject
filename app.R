@@ -10,6 +10,7 @@ library(ggplot2)
 library(scales)
 library(lubridate)
 
+
 # Load data from Google
 bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register googlesheet
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
@@ -18,8 +19,10 @@ data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific row
 # Format
 data$time <- hms(data$time) # cannot ggplot type "period"?
 data$date <- mdy(data$date)
-geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
-
+#geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
+data$popup <- ifelse(is.na(data$description)==TRUE, 
+                        data$place, 
+                        paste(data$place, "<br>", data$description))
 
 shinyApp(
     ui <- dashboardPage(
@@ -50,26 +53,29 @@ shinyApp(
                                      San Francisco.", 
                                      br(), br(), 
                                      "Every night along the way, when setting up 
-                                     camp, I would note down the numbers collected 
-                                     on my bike computer during that day.", 
+                                     camp, I would mark down the numbers collected 
+                                     on my bike computer during that day and estimate
+                                     my position on the map.", 
                                      br(), br(), 
                                      "This is an initial, and very experimental 
                                      attempt at visualizing some of those numbers."),
                                box(width=6,
                                    title="Navigating this website",
-                                    "The map above shows a dot at every place
-                                    I've been camping at along the way.",
-                                    br(), br(), 
-                                    "If you want to further explore 
-                                    some of the data connecting these points, the 
-                                    'Charts'-tab on the sidebar to the left will 
-                                    allow you to do so. Finally, if you're more 
-                                    curious about this website or who I am, check 
-                                    out the 'About'-tab.",
-                                    br(), br(),
-                                    "Keep in mind, you can always close the sidebar to 
-                                    enlarge the graphics by clicking the little 
-                                    'menu'-button in the bar at the top.")
+                                   "The red dots in the map above indicate all the 
+                                   place places I've been staying for the night 
+                                   during the trip. You can click the points to see
+                                   the exact name of the place along with any brief 
+                                   notes for that day.",
+                                   br(), br(), 
+                                   "If you want to further explore some of the data 
+                                   connecting these points, the 'Charts'-tab on the 
+                                   sidebar to the left will allow you to do so. 
+                                   Finally, if you're more curious about this website 
+                                   or who I am, check out the 'About'-tab.",
+                                   br(), br(), 
+                                   "Keep in mind, you can always close the sidebar 
+                                   to enlarge the map by clicking the little 
+                                   'menu'-icon in the bar at the very top.")
                                )
                         ),
                 tabItem(tabName="charts",
@@ -89,7 +95,10 @@ shinyApp(
                                               "Max climb" = "Max climb (%)",
                                               "Max descent" = "Max descent (%)")
                                     ),
-                        plotOutput(outputId = "dayplot")
+                        box(width=12, 
+                            plotOutput(outputId = "dayplot", 
+                                       width="100%",
+                                       height="400"))
                         ),
                 tabItem(tabName="about",
                         fluidRow(
@@ -112,7 +121,7 @@ shinyApp(
                                 ),
                             box(width=6,
                                 title="How does it work?",
-                                "This entire website was built in the statistical
+                                "This entire website was built with the statistical
                                 programming software R using Shiny. The data is
                                 automatically collected from a Google spreadsheet,
                                 and updated whenever new data is available.",
@@ -122,13 +131,13 @@ shinyApp(
                                 the daily data into a spreadsheet on my iPad, 
                                 and have it automatically update the website 
                                 with the more current information, whenever 
-                                the iPad next gets access to the internet.",
+                                the iPad gains access to the internet.",
                                 br(), br(),
                                 "Perhaps in the more distant future, I'll 
                                 invest in a GPS that can track my actual route,
                                 rather than just my manually estimated campsites
-                                to further ease the burden on me and increase the
-                                precision of my data.")
+                                to further increase the precision of the data 
+                                (and ease the burden on me).")
                             )
                         )
                     )
@@ -148,8 +157,11 @@ shinyApp(
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
                              options=providerTileOptions(noWrap=TRUE)) %>%
-            addCircleMarkers(lng = geodata$longitude, lat = geodata$latitude, 
-                             radius=1)
+            addCircleMarkers(lng = data$longitude, 
+                             lat = data$latitude, 
+                             radius=2, 
+                             color="red", 
+                             popup= data$popup)
         
         output$myMap <- renderLeaflet(map)
         
