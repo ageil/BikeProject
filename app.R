@@ -33,10 +33,17 @@ shinyApp(
                         titleWidth=240),
         dashboardSidebar(
             sidebarMenu(
+                dateRangeInput("cal",
+                               label = "Choose an interval of dates",
+                               start = head(geodata$date, 1),
+                               end = tail(geodata$date, 1),
+                               min = head(geodata$date, 1),
+                               max = tail(geodata$date, 1),
+                               format = "dd/mm/yy"),
                 menuItem("Map", tabName="map", icon=icon("globe")),
                 menuItem("Charts", tabName="charts", icon=icon("area-chart")),
                 menuItem("About", tabName="about", icon=icon("info"))
-            )
+                )
         ),
         dashboardBody(
             tabItems(
@@ -143,17 +150,21 @@ shinyApp(
                                 (and ease the burden on me).")
                             )
                         )
-                    )
                 )
-        ),
+            )
+    ),
 
     
     
     server <- function(input, output) {
         
+        output$calrange <- renderText({
+            paste("input$cal is", paste(as.character(input$cal), collapse=" to "))
+        })
+        
 #         output$cal <- renderMenu({
 #             sidebarMenu(
-#                 menuItem("Cal item", icon=icon("calendar"))
+#                 menuItem("Calendar", icon=icon("calendar"))
 #             )
 #         })
         
