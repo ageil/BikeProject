@@ -19,10 +19,13 @@ data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific row
 # Format
 data$time <- hms(data$time) # cannot ggplot type "period"?
 data$date <- mdy(data$date)
-#geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
-data$popup <- ifelse(is.na(data$description)==TRUE, 
-                        data$place, 
-                        paste(data$place, "<br>", data$description))
+geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
+geodata$popup <- ifelse(is.na(geodata$description)==TRUE, 
+                        yes=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+                                   geodata$place, ", ", geodata$state), 
+                        no=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
+                                  geodata$place, ", ", geodata$state, "<br>",
+                                  geodata$description))
 
 shinyApp(
     ui <- dashboardPage(
@@ -157,11 +160,11 @@ shinyApp(
         map <- leaflet() %>% 
             addProviderTiles("Thunderforest.Outdoors",
                              options=providerTileOptions(noWrap=TRUE)) %>%
-            addCircleMarkers(lng = data$longitude, 
-                             lat = data$latitude, 
+            addCircleMarkers(lng = geodata$longitude, 
+                             lat = geodata$latitude, 
                              radius=2, 
                              color="red", 
-                             popup= data$popup)
+                             popup= geodata$popup)
         
         output$myMap <- renderLeaflet(map)
         
