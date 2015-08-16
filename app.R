@@ -16,15 +16,10 @@ bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register google
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
 
 # Format
-#data$time <- strptime(data$time, format="%H:%M:%S")
+data$time <- as.POSIXct(data$time, format="%H:%M:%S")
 data$date <- as.Date(data$date, format="%m/%d/%Y")
-# geodata <- subset(data, complete.cases(data[,18:19])) # only complete lat/lng (leaflet doesnt handle NA yet)
-# geodata$popup <- ifelse(is.na(geodata$description)==TRUE, 
-#                         yes=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
-#                                    geodata$place, ", ", geodata$state), 
-#                         no=paste0("Day", " ", geodata$day, " ", "(", geodata$date, ")", "<br>",
-#                                   geodata$place, ", ", geodata$state, "<br>",
-#                                   geodata$description))
+data$state <- as.factor(data$state)
+
 
 myapp <- shinyApp(
     ui <- dashboardPage(
@@ -85,9 +80,9 @@ myapp <- shinyApp(
                                Finally, if you're more curious about this website 
                                or who I am, check out the 'About'-tab.",
                                br(), br(), 
-                               "Keep in mind, you can always close the sidebar 
-                               to enlarge the map by clicking the little 
-                               'menu'-icon in the bar at the very top.")
+                               "You can also 'zoom' in on a specific section of 
+                               the trip by selecting a specific interval in the 
+                               sidebar. It will work on both the map and the charts.")
                            )
                         ),
                 tabItem(tabName="charts",
@@ -97,6 +92,7 @@ myapp <- shinyApp(
                                     choices=c("Total distance" = "Total distance (km)",
                                               "Total altitude up" = "Total altitude up (km)",
                                               "Total altitude down" = "Total altitude down (km)",
+#                                              "Time" = "Time (h:m:s)",
                                               "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
@@ -162,11 +158,13 @@ myapp <- shinyApp(
         
         mydata <- reactive({
             caldates <- seq(input$cal[1], input$cal[2], by="day")  # user-selected dates
-            #caldates <- seq(data$date[1], data$date[70], by="day")
             caldata <- filter(data, date %in% caldates)  # user-selected data
         })
             
         myplotdata <- reactive({
+#             if (input$yvar == "Time (h:m:s)") {
+#                 plotdata <- data.frame(day = mydata()$day, var = mydata()$time, State=mydata()$state)
+#             } else if
             if (input$yvar == "Distance (km)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$distance, State=mydata()$state)
             } else if (input$yvar == "Average speed (km/h)") {
@@ -227,6 +225,27 @@ myapp <- shinyApp(
         output$myMap <- renderLeaflet(map)
         
         output$dayplot <- renderPlot({
+#             if (input$yvar == "Time (h:m:s)") {
+#                 p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
+#                     geom_bar(stat="identity") +
+#                     xlab("Day") +
+#                     ylab(input$yvar) +
+#                     scale_x_continuous(breaks=pretty_breaks(10)) +
+#                     scale_y_datetime(breaks = date_breaks("30 min")) +
+#                     scale_fill_brewer(palette="Paired", type="qual") +
+#                     scale_color_brewer(palette="Paired", type="qual")
+#                 print(p)
+#             } else {
+#             p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
+#                 geom_bar(stat="identity") +
+#                 xlab("Day") +
+#                 ylab(input$yvar) +
+#                 scale_x_continuous(breaks=pretty_breaks(10)) +
+#                 scale_y_continuous(breaks=pretty_breaks(10)) +
+#                 scale_fill_brewer(palette="Paired", type="qual") +
+#                 scale_color_brewer(palette="Paired", type="qual")
+#             print(p)
+#             }
             p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
                 geom_bar(stat="identity") +
                 xlab("Day") +
@@ -241,5 +260,4 @@ myapp <- shinyApp(
 )
 
 
-# runApp(myapp, display.mode="showcase")
 
