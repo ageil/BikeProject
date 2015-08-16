@@ -92,7 +92,7 @@ myapp <- shinyApp(
                                     choices=c("Total distance" = "Total distance (km)",
                                               "Total altitude up" = "Total altitude up (km)",
                                               "Total altitude down" = "Total altitude down (km)",
-#                                              "Time" = "Time (h:m:s)",
+                                              "Time" = "Time (h:m:s)",
                                               "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
@@ -162,10 +162,9 @@ myapp <- shinyApp(
         })
             
         myplotdata <- reactive({
-#             if (input$yvar == "Time (h:m:s)") {
-#                 plotdata <- data.frame(day = mydata()$day, var = mydata()$time, State=mydata()$state)
-#             } else if
-            if (input$yvar == "Distance (km)") {
+             if (input$yvar == "Time (h:m:s)") {
+                 plotdata <- data.frame(day = mydata()$day, var = mydata()$time, State=mydata()$state)
+             } else if (input$yvar == "Distance (km)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$distance, State=mydata()$state)
             } else if (input$yvar == "Average speed (km/h)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$avg_speed, State=mydata()$state)
@@ -225,27 +224,20 @@ myapp <- shinyApp(
         output$myMap <- renderLeaflet(map)
         
         output$dayplot <- renderPlot({
-#             if (input$yvar == "Time (h:m:s)") {
-#                 p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
-#                     geom_bar(stat="identity") +
-#                     xlab("Day") +
-#                     ylab(input$yvar) +
-#                     scale_x_continuous(breaks=pretty_breaks(10)) +
-#                     scale_y_datetime(breaks = date_breaks("30 min")) +
-#                     scale_fill_brewer(palette="Paired", type="qual") +
-#                     scale_color_brewer(palette="Paired", type="qual")
-#                 print(p)
-#             } else {
-#             p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
-#                 geom_bar(stat="identity") +
-#                 xlab("Day") +
-#                 ylab(input$yvar) +
-#                 scale_x_continuous(breaks=pretty_breaks(10)) +
-#                 scale_y_continuous(breaks=pretty_breaks(10)) +
-#                 scale_fill_brewer(palette="Paired", type="qual") +
-#                 scale_color_brewer(palette="Paired", type="qual")
-#             print(p)
-#             }
+            if (input$yvar == "Time (h:m:s)") {
+                p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
+                    geom_bar(stat="identity") +
+                    xlab("Day") +
+                    ylab(input$yvar) +
+                    scale_x_continuous(breaks=pretty_breaks(10)) +
+                    scale_y_datetime(breaks = date_breaks("1 hour"),
+                                     labels = date_format("%H:%M")) +
+                    coord_cartesian(ylim = c(as.POSIXct("0:0:0", tz = "GMT", format="%H:%M:%S"),
+                                             as.POSIXct("12:00:00", tz = "GMT", format="%H:%M:%S"))) +
+                    scale_fill_brewer(palette="Paired", type="qual") +
+                    scale_color_brewer(palette="Paired", type="qual")
+                print(p)
+            } else {
             p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
                 geom_bar(stat="identity") +
                 xlab("Day") +
@@ -255,6 +247,7 @@ myapp <- shinyApp(
                 scale_fill_brewer(palette="Paired", type="qual") +
                 scale_color_brewer(palette="Paired", type="qual")
             print(p)
+            }
         })
     }
 )
