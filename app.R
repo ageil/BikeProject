@@ -106,12 +106,43 @@ myapp <- shinyApp(
                         box(width=12, 
                             plotOutput(outputId = "dayplot", 
                                        width="100%",
-                                       height="400"))
+                                       height="400")),
+                        fluidRow(box(width = 12,
+                                     title = "Variables",
+                                     "- Total distance measures the aggregated daily
+                                     distances since the start.",
+                                     br(),
+                                     "- Total altitude up and total altitude down 
+                                     measures the aggregated vertical distance.",
+                                     br(),
+                                     "- Time indicates the amount of active hours on
+                                     the bike (breaks are excluded).",
+                                     br(),
+                                     "- Distance indicates the daily distance travelled.",
+                                     br(),
+                                     "- Average speed measures the average daily speed.",
+                                     br(),
+                                     "- Top speed indicates the highest daily speed achieved.",
+                                     br(),
+                                     "- Altitude up and altitude down tracks the 
+                                     daily vertical distance travelled.",
+                                     br(),
+                                     "- Average climb and average descent displays
+                                     the average daily gradients up and down.",
+                                     br(),
+                                     "- Max climb and max descent indicates the highest
+                                     daily gradients achieved (the last day is not a bug,
+                                     but the result of crossing Lombard Street in 
+                                     San Francisco!).",
+                                     br(), br(),
+                                     "Also note that some days may appear missing.
+                                     This is either due to restdays or exploration
+                                     off the bike."))
                         ),
                 tabItem(tabName="about",
                         fluidRow(
                             box(width=6, 
-                                title="Who am I?", 
+                                title="About me", 
                                 "My name is Anders, and when I'm not riding a bicycle
                                 around the world, I'm a political science student
                                 at Aarhus University, Denmark.",
@@ -121,25 +152,25 @@ myapp <- shinyApp(
                                 is part of my course project for the 
                                 'Data Products'-class in the Data Science
                                 Specialization offered by Johns Hopkins University 
-                                at Coursera.",
+                                through Coursera.",
                                 br(), br(),
-                                "My plan is to gradually expand on this basic website
+                                "My intention is to gradually expand on this basic website
                                 framework, so it may be used as a statistical platform 
-                                for future bicycle trips."
+                                for my future bicycle trips."
                                 ),
                             box(width=6,
-                                title="How does it work?",
-                                "This entire website was built with the statistical
+                                title="About this website",
+                                "This entire web app was built with the statistical
                                 programming software R using Shiny. The data is
                                 automatically collected from a Google spreadsheet,
                                 and updated whenever new data is available.",
                                 br(), br(),
-                                "My intention is to build upon this framework,
-                                so that I - during future trips - can just type
+                                "The driving idea behind this is that I
+                                - during future trips - can just type
                                 the daily data into a spreadsheet on my iPad, 
                                 and have it automatically update the website 
                                 with the more current information, whenever 
-                                the iPad gains access to the internet.",
+                                the iPad next gains access to the internet.",
                                 br(), br(),
                                 "Perhaps in the more distant future, I'll 
                                 invest in a GPS that can track my actual route,
