@@ -11,7 +11,7 @@ library(ggplot2)
 library(scales)
 
 
-# # Load data from Google
+# Load data from Google
 bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register googlesheet
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
 
@@ -190,8 +190,7 @@ shinyApp(
         myplotdata <- reactive({
              if (input$yvar == "Time") {
                  plotdata <- data.frame(day = mydata()$day, var = mydata()$time, State=mydata()$state)
-             } else 
-            if (input$yvar == "Distance (km)") {
+             } else if (input$yvar == "Distance (km)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$distance, State=mydata()$state)
             } else if (input$yvar == "Average speed (km/h)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$avg_speed, State=mydata()$state)
