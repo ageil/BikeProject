@@ -11,9 +11,10 @@ library(ggplot2)
 library(scales)
 
 
-# Load data from Google
+# # Load data from Google
 bike <- gs_key("1lGbXMISTa2iBD5xEwufN6cj1BCoLpwTQazxouSBnM0s") # register googlesheet
 data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific rows to avoid bug
+
 
 # Format
 data$time <- as.POSIXct(data$time, format="%H:%M:%S")
@@ -21,7 +22,7 @@ data$date <- as.Date(data$date, format="%m/%d/%Y")
 data$state <- as.factor(data$state)
 
 
-myapp <- shinyApp(
+shinyApp(
     ui <- dashboardPage(
         dashboardHeader(title="Cycling across America",
                         titleWidth=240),
@@ -82,7 +83,7 @@ myapp <- shinyApp(
                                br(), br(), 
                                "You can also 'zoom' in on a specific section of 
                                the trip by selecting a specific interval in the 
-                               sidebar. It will work on both the map and the charts.")
+                               sidebar. It will adjust both the map and the charts.")
                            )
                         ),
                 tabItem(tabName="charts",
@@ -92,7 +93,7 @@ myapp <- shinyApp(
                                     choices=c("Total distance" = "Total distance (km)",
                                               "Total altitude up" = "Total altitude up (km)",
                                               "Total altitude down" = "Total altitude down (km)",
-                                              "Time" = "Time (h:m:s)",
+#                                              "Time" = "Time",
                                               "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
@@ -114,9 +115,9 @@ myapp <- shinyApp(
                                      br(),
                                      "- Total altitude up and total altitude down 
                                      measures the aggregated vertical distance.",
-                                     br(),
-                                     "- Time indicates the amount of active hours on
-                                     the bike (breaks are excluded).",
+#                                      br(),
+#                                      "- Time indicates the amount of active hours on
+#                                      the bike (breaks are excluded).",
                                      br(),
                                      "- Distance indicates the daily distance travelled.",
                                      br(),
@@ -161,22 +162,16 @@ myapp <- shinyApp(
                             box(width=6,
                                 title="About this website",
                                 "This entire web app was built with the statistical
-                                programming software R using Shiny. The data is
-                                automatically collected from a Google spreadsheet,
-                                and updated whenever new data is available.",
+                                programming software R using Shiny. The data is 
+                                loaded directly from a Google spreadsheet, which 
+                                can be filled in even without internet access.",
                                 br(), br(),
                                 "The driving idea behind this is that I
                                 - during future trips - can just type
-                                the daily data into a spreadsheet on my iPad, 
+                                the daily data into a Google spreadsheet on my iPad, 
                                 and have it automatically update the website 
                                 with the more current information, whenever 
-                                the iPad next gains access to the internet.",
-                                br(), br(),
-                                "Perhaps in the more distant future, I'll 
-                                invest in a GPS that can track my actual route,
-                                rather than just my manually estimated campsites
-                                to further increase the precision of the data 
-                                (and ease the burden on me).")
+                                the iPad next gains access to the internet.")
                             )
                         )
                 )
@@ -193,9 +188,10 @@ myapp <- shinyApp(
         })
             
         myplotdata <- reactive({
-             if (input$yvar == "Time (h:m:s)") {
+             if (input$yvar == "Time") {
                  plotdata <- data.frame(day = mydata()$day, var = mydata()$time, State=mydata()$state)
-             } else if (input$yvar == "Distance (km)") {
+             } else 
+            if (input$yvar == "Distance (km)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$distance, State=mydata()$state)
             } else if (input$yvar == "Average speed (km/h)") {
                 plotdata <- data.frame(day = mydata()$day, var = mydata()$avg_speed, State=mydata()$state)
@@ -255,7 +251,7 @@ myapp <- shinyApp(
         output$myMap <- renderLeaflet(map)
         
         output$dayplot <- renderPlot({
-            if (input$yvar == "Time (h:m:s)") {
+            if (input$yvar == "Time") {
                 p <- ggplot(myplotdata(), aes(day, var, fill=State, color=State)) +
                     geom_bar(stat="identity") +
                     xlab("Day") +
