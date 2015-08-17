@@ -17,7 +17,7 @@ data <- gs_read(bike, range="A1:S79") # load data from googlesheet; specific row
 
 
 # Format
-data$time <- as.POSIXct(data$time, format="%H:%M:%S")
+data$time <- as.POSIXct(paste("1970-01-01", data$time), format="%Y-%m-%d %H:%M:%S", tz = "GMT")
 data$date <- as.Date(data$date, format="%m/%d/%Y")
 data$state <- as.factor(data$state)
 
@@ -93,7 +93,7 @@ shinyApp(
                                     choices=c("Total distance" = "Total distance (km)",
                                               "Total altitude up" = "Total altitude up (km)",
                                               "Total altitude down" = "Total altitude down (km)",
-#                                              "Time" = "Time",
+                                              "Time" = "Time",
                                               "Distance" = "Distance (km)",
                                               "Average speed" = "Average speed (km/h)",
                                               "Top speed" = "Top speed (km/h)",
@@ -115,9 +115,9 @@ shinyApp(
                                      br(),
                                      "- Total altitude up and total altitude down 
                                      measures the aggregated vertical distance.",
-#                                      br(),
-#                                      "- Time indicates the amount of active hours on
-#                                      the bike (breaks are excluded).",
+                                     br(),
+                                     "- Time indicates the amount of active hours on
+                                     the bike (breaks are excluded).",
                                      br(),
                                      "- Distance indicates the daily distance travelled.",
                                      br(),
@@ -258,8 +258,6 @@ shinyApp(
                     scale_x_continuous(breaks=pretty_breaks(10)) +
                     scale_y_datetime(breaks = date_breaks("1 hour"),
                                      labels = date_format("%H:%M")) +
-                    coord_cartesian(ylim = c(as.POSIXct("0:0:0", tz = "GMT", format="%H:%M:%S"),
-                                             as.POSIXct("12:00:00", tz = "GMT", format="%H:%M:%S"))) +
                     scale_fill_brewer(palette="Paired", type="qual") +
                     scale_color_brewer(palette="Paired", type="qual")
                 print(p)
